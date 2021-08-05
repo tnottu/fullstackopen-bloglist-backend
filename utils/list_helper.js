@@ -1,3 +1,6 @@
+const countBy = require('lodash/countBy')
+const sortBy = require('lodash/sortBy')
+
 const dummy = (blogs) => {
   return 1
 }
@@ -24,8 +27,16 @@ const favoriteBlog = (blogs = []) => {
   return favorite
 }
 
+const mostBlogs = (blogs = []) => {
+  const blogCountsByAuthor = Object.entries(countBy(blogs, 'author' ))
+    .map((authorBlogCounts) => ({ author: authorBlogCounts[0], blogs: authorBlogCounts[1] }))
+  const blogCountsByAuthorSorted = sortBy(blogCountsByAuthor, ['blogs']).reverse()
+  return blogCountsByAuthorSorted[0] || null
+}
+
 module.exports = {
   dummy,
   totalLikes,
   favoriteBlog,
+  mostBlogs,
 }
