@@ -53,6 +53,22 @@ describe('blog api', () => {
     expect(newBlog).toEqual(returnedBlog)
   })
 
+  test('likes -property defaults to zero', async () => {
+    const newBlog = {
+      title: 'Consider Phlebas',
+      author: 'Iain M. Banks',
+      url: 'https://en.wikipedia.org/wiki/Consider_Phlebas',
+    }
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+
+    const blogsAtEnd = await helper.blogsInDb()
+    const returnedBlog = blogsAtEnd[blogsAtEnd.length - 1]
+    expect(returnedBlog.likes).toBe(0)
+  })
+
 })
 
 afterAll(() => {
