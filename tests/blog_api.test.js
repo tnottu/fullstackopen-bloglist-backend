@@ -31,6 +31,28 @@ describe('blog api', () => {
     })
   })
 
+  test('a valid blog post can be added', async () => {
+    const newBlog = {
+      title: 'Excession',
+      author: 'Iain M. Banks',
+      url: 'https://en.wikipedia.org/wiki/Excession',
+      likes: 12,
+    }
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+
+    const blogsAtEnd = await helper.blogsInDb()
+    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length + 1)
+
+    const returnedBlog = blogsAtEnd[blogsAtEnd.length - 1]
+    delete returnedBlog.id
+    expect(newBlog).toEqual(returnedBlog)
+  })
+
 })
 
 afterAll(() => {
