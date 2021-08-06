@@ -67,6 +67,7 @@ describe('blog api post methods', () => {
     await api
       .post('/api/blogs')
       .send(newBlog)
+      .expect(201)
 
     const blogsAtEnd = await helper.blogsInDb()
     const returnedBlog = blogsAtEnd[blogsAtEnd.length - 1]
@@ -104,6 +105,34 @@ describe('blog api delete methods', () => {
 
     expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length - 1)
     expect(idsAtEnd).not.toContain(blogToDelete.id)
+  })
+
+})
+
+describe('blog api put methods', () => {
+
+  test('can update blog post information if id is valid', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToUpdate = blogsAtStart[0]
+    const blog = {
+      title: 'Dune',
+      author: 'Frank Herbert',
+      url: 'https://en.wikipedia.org/wiki/Dune_(novel)',
+      likes: 412,
+    }
+
+    await api
+      .put(`/api/blogs/${blogToUpdate.id}`)
+      .send(blog)
+      .expect(200)
+
+    const blogsAtEnd = await helper.blogsInDb()
+    const updatedBlog = blogsAtEnd[0]
+
+    delete updatedBlog.id
+
+    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
+    expect(updatedBlog).toEqual(blog)
   })
 
 })
