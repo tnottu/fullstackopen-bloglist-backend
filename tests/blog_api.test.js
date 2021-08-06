@@ -5,6 +5,22 @@ const app = require('../app')
 const api = supertest(app)
 
 const Blog = require('../models/blog')
+const User = require('../models/user')
+
+let token
+
+beforeAll(async () => {
+  await User.deleteMany({})
+
+  const testUser = new User(helper.testUser.db)
+  await testUser.save()
+
+  const loginResponse = await api
+    .post('/api/login')
+    .send(helper.testUser.login)
+
+  token = loginResponse.body.token
+})
 
 beforeEach(async () => {
   await Blog.deleteMany({})
@@ -45,6 +61,7 @@ describe('blog api post methods', () => {
 
     await api
       .post('/api/blogs')
+      .set('Authorization', `bearer ${token}`)
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
@@ -54,6 +71,7 @@ describe('blog api post methods', () => {
 
     const returnedBlog = blogsAtEnd[blogsAtEnd.length - 1]
     delete returnedBlog.id
+    delete returnedBlog.user
     expect(newBlog).toEqual(returnedBlog)
   })
 
@@ -66,6 +84,7 @@ describe('blog api post methods', () => {
 
     await api
       .post('/api/blogs')
+      .set('Authorization', `bearer ${token}`)
       .send(newBlog)
       .expect(201)
 
@@ -81,6 +100,7 @@ describe('blog api post methods', () => {
 
     await api
       .post('/api/blogs')
+      .set('Authorization', `bearer ${token}`)
       .send(newBlog)
       .expect(400)
 
@@ -98,6 +118,7 @@ describe('blog api delete methods', () => {
 
     await api
       .delete(`/api/blogs/${blogToDelete.id}`)
+      .set('Authorization', `bearer ${token}`)
       .expect(204)
 
     const blogsAtEnd = await helper.blogsInDb()
@@ -105,6 +126,17 @@ describe('blog api delete methods', () => {
 
     expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length - 1)
     expect(idsAtEnd).not.toContain(blogToDelete.id)
+  })
+
+  test('fails with status code 401 if token is invalid', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToDelete = blogsAtStart[0]
+
+    const result = await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .expect(401)
+
+    expect(result.body.error).toContain('invalid token')
   })
 
 })
@@ -130,6 +162,7 @@ describe('blog api put methods', () => {
     const updatedBlog = blogsAtEnd[0]
 
     delete updatedBlog.id
+    delete updatedBlog.user
 
     expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
     expect(updatedBlog).toEqual(blog)
