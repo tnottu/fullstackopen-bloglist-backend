@@ -15,7 +15,7 @@ beforeEach(async () => {
   await Promise.all(promiseArray)
 })
 
-describe('blog api', () => {
+describe('blog api get methods', () => {
 
   test('all blogs are returned as json', async () => {
     const response = await api.get('/api/blogs')
@@ -30,6 +30,10 @@ describe('blog api', () => {
       expect(blog.id).toBeDefined()
     })
   })
+
+})
+
+describe('blog api post methods', () => {
 
   test('a valid blog post can be added', async () => {
     const newBlog = {
@@ -82,6 +86,25 @@ describe('blog api', () => {
     const blogsAtEnd = await helper.blogsInDb()
     expect(blogsAtEnd.length).toBe(helper.initialBlogs.length)
   }, 10000)
+
+})
+
+describe('blog api delete methods', () => {
+
+  test('succeeds with status code 204 if id is valid', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToDelete = blogsAtStart[0]
+
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .expect(204)
+
+    const blogsAtEnd = await helper.blogsInDb()
+    const idsAtEnd = blogsAtEnd.map(b => b.id)
+
+    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length - 1)
+    expect(idsAtEnd).not.toContain(blogToDelete.id)
+  })
 
 })
 
