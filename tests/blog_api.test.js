@@ -24,6 +24,13 @@ describe('blog api', () => {
     expect(response.body).toHaveLength(helper.initialBlogs.length)
   })
 
+  test('blog posts have unique identifiers named id', async () => {
+    const response = await api.get('/api/blogs')
+    response.body .forEach((blog) => {
+      expect(blog.id).toBeDefined()
+    })
+  })
+
 })
 
 afterAll(() => {
