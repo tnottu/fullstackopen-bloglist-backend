@@ -69,6 +69,20 @@ describe('blog api', () => {
     expect(returnedBlog.likes).toBe(0)
   })
 
+  test('creating blog post should fail with status code 400 if title or url missing', async () => {
+    const newBlog = {
+      author: 'Iain M. Banks',
+    }
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(400)
+
+    const blogsAtEnd = await helper.blogsInDb()
+    expect(blogsAtEnd.length).toBe(helper.initialBlogs.length)
+  }, 10000)
+
 })
 
 afterAll(() => {
